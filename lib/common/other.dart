@@ -152,6 +152,24 @@ class Other {
     // };
   }
 
+  /**
+   * modify 1
+   * from history code, recover color change feature
+   */
+  String getTrayIconPath({
+    required bool isStart,
+    required Brightness brightness,
+  }) {
+    final suffix = Platform.isWindows ? "ico" : "png";
+    if (!isStart && Platform.isWindows) {
+      return switch (brightness) {
+        Brightness.dark => "assets/images/icon_white.$suffix",
+        Brightness.light => "assets/images/icon_black.$suffix",
+      };
+    }
+    return "assets/images/icon.$suffix";
+  }
+
   int compareVersions(String version1, String version2) {
     List<String> v1 = version1.split('+')[0].split('.');
     List<String> v2 = version2.split('+')[0].split('.');
