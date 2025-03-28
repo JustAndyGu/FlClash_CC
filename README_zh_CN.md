@@ -4,7 +4,7 @@
 
 </div>
 
-## FlClash_CTIC
+## FlClash_CC
 
 从原作者[项目]("https://github.com/chen08209/FlClash")fork而来。
 
