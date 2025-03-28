@@ -138,7 +138,10 @@ class Other {
     }
   }
 
-  String getTrayIconPath({
+  /**
+   * modify 1
+   */
+/*   String getTrayIconPath({
     required Brightness brightness,
   }) {
     if (Platform.isMacOS) {
@@ -150,10 +153,10 @@ class Other {
     //   Brightness.dark => "assets/images/icon_white.$suffix",
     //   Brightness.light => "assets/images/icon_black.$suffix",
     // };
-  }
+  } */
 
   /**
-   * modify 1
+   * modify 2
    * from history code, recover color change feature
    */
   String getTrayIconPath({

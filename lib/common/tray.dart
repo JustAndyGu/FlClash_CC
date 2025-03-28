@@ -15,7 +15,7 @@ import 'window.dart';
 
 class Tray {
   /**
-   * modify 2
+   * modify 3
    */
   Future _updateSystemTray({
     required bool isStart,
@@ -44,7 +44,7 @@ class Tray {
   }
 
   /**
-   * modify 3
+   * modify 4
    */
   update({
     required TrayState trayState,
