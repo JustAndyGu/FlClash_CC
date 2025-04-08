@@ -4,6 +4,8 @@ on:
   push:
     tags:
       - 'v*'
+env:
+  IS_STABLE: ${{ !contains(github.ref, '-') }}
 
 jobs:
   build:
@@ -38,7 +40,7 @@ jobs:
         run: flutter pub get
 
       - name: Setup
-        run: dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }}
+        run: dart setup.dart ${{ matrix.platform }} ${{ matrix.arch && format('--arch {0}', matrix.arch) }} ${{ env.IS_STABLE == 'true' && '--env stable' || '' }}
 
       - name: Upload
         uses: actions/upload-artifact@v4
@@ -97,9 +99,8 @@ jobs:
           sed "s|VERSION|$version|g" ./.github/release_template.md >> release.md
 
       - name: Release
-        if: ${{ !contains(github.ref, '+') }}
+        if: ${{ env.IS_STABLE == 'true' }}
         uses: softprops/action-gh-release@v2
         with:
           files: ./dist/*
           body_path: './release.md'
-
