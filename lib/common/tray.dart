@@ -11,6 +11,7 @@ import 'package:tray_manager/tray_manager.dart';
 
 import 'app_localizations.dart';
 import 'constant.dart';
+import 'system.dart';
 import 'window.dart';
 
 class Tray {

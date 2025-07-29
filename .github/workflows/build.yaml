@@ -67,10 +67,6 @@ jobs:
           name: artifact-${{ matrix.platform }}${{ matrix.arch && format('-{0}', matrix.arch) }}
           path: ./dist
           overwrite: true
-      - name: Check dist content before upload
-        run: |
-          echo "Checking ./dist"
-          dir ./dist
 
   upload:
     permissions: write-all
