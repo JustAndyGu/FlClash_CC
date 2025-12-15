@@ -142,37 +142,9 @@ class Utils {
     }
   }
 
-/**
- * modify 1
- */
-/*   String getTrayIconPath({required Brightness brightness}) {
-    if (system.isMacOS) {
-      return 'assets/images/icon_white.png';
-    }
+  String get traySuffix {
     final suffix = system.isWindows ? 'ico' : 'png';
-    return 'assets/images/icon.$suffix';
-    // return switch (brightness) {
-    //   Brightness.dark => "assets/images/icon_white.$suffix",
-    //   Brightness.light => "assets/images/icon_black.$suffix",
-    // };
-  } */
-
-  /**
-   * modify 2
-   * from history code, recover color change feature
-   */
-  String getTrayIconPath({
-    required bool isStart,
-    required Brightness brightness,
-  }) {
-    final suffix = Platform.isWindows ? "ico" : "png";
-    if (!isStart && Platform.isWindows) {
-      return switch (brightness) {
-        Brightness.dark => "assets/images/icon_white.$suffix",
-        Brightness.light => "assets/images/icon_black.$suffix",
-      };
-    }
-    return "assets/images/icon.$suffix";
+    return 'assets/images/icon/status_2.$suffix';
   }
 
   int compareVersions(String version1, String version2) {
