@@ -19,7 +19,9 @@ class Tray {
   }
 
   String getTryIcon({required bool isStart, required bool tunEnable}) {
-    if (system.isMacOS || !isStart) {
+    // if (system.isMacOS || !isStart) {
+    // modify 1. After v0.8.91 released, this maybe the only one modify.
+    if (!isStart) {
       return 'assets/images/icon/status_1.$trayIconSuffix';
     }
     if (!tunEnable) {
