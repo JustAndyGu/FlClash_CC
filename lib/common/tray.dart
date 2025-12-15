@@ -18,28 +18,45 @@ class Tray {
     return system.isWindows ? 'ico' : 'png';
   }
 
-  String getTryIcon({required bool isStart, required bool tunEnable}) {
-    // if (system.isMacOS || !isStart) {
-    // modify 1. After v0.8.91 released, this maybe the only one modify.
-    if (!isStart) {
+  // modify 1. The upstream original codes.
+  /**
+  String getTryIcon({required bool isStart, required Brightness? brightness}) {
+
+    if (system.isMacOS || !isStart) {
       return 'assets/images/icon/status_1.$trayIconSuffix';
     }
     if (!tunEnable) {
       return 'assets/images/icon/status_2.$trayIconSuffix';
     }
     return 'assets/images/icon/status_3.$trayIconSuffix';
+  }*/
+
+  // modify 2. Recover from the commits history.
+  String getTrayIcon({
+    required bool isStart,
+    required Brightness brightness,
+  }) {
+    if (!isStart) {
+      return switch (brightness) {
+        Brightness.dark => "assets/images/icon/icon_white.$trayIconSuffix",
+        Brightness.light => "assets/images/icon/icon_black.$trayIconSuffix",
+      };
+    }
+    return "assets/images/icon.$trayIconSuffix";
   }
 
+  // modify 3. Change the param and the method call.
   Future _updateSystemTray({
     bool force = false,
     required bool isStart,
-    required bool tunEnable,
+    required Brightness? brightness,
   }) async {
     if (Platform.isLinux || force) {
       await trayManager.destroy();
     }
     await trayManager.setIcon(
-      getTryIcon(isStart: isStart, tunEnable: tunEnable),
+      getTrayIcon(isStart: isStart, brightness: brightness ??
+          WidgetsBinding.instance.platformDispatcher.platformBrightness),
       isTemplate: true,
     );
     if (!Platform.isLinux) {
@@ -47,6 +64,7 @@ class Tray {
     }
   }
 
+  // modify 4. Change the method calls at line 78 and 201.
   Future<void> update({
     required TrayState trayState,
     bool focus = false,
@@ -57,7 +75,7 @@ class Tray {
     if (!system.isLinux) {
       await _updateSystemTray(
         isStart: trayState.isStart,
-        tunEnable: trayState.tunEnable,
+        brightness: trayState.brightness,
         force: focus,
       );
     }
@@ -180,7 +198,7 @@ class Tray {
     if (system.isLinux) {
       await _updateSystemTray(
         isStart: trayState.isStart,
-        tunEnable: trayState.tunEnable,
+        brightness: trayState.brightness,
         force: focus,
       );
     }
