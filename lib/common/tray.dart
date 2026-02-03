@@ -1,10 +1,8 @@
 import 'dart:io';
 
-import 'package:fl_clash/common/iterable.dart';
+import 'package:fl_clash/controller.dart';
 import 'package:fl_clash/enum/enum.dart';
 import 'package:fl_clash/models/models.dart';
-import 'package:fl_clash/state.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:tray_manager/tray_manager.dart';
@@ -15,14 +13,24 @@ import 'system.dart';
 import 'window.dart';
 
 class Tray {
+  static Tray? _instance;
+
+  Tray._internal();
+
+  factory Tray() {
+    _instance ??= Tray._internal();
+    return _instance!;
+  }
+
   String get trayIconSuffix {
     return system.isWindows ? 'ico' : 'png';
   }
 
-  // modify 1. The upstream original codes.
-  /**
-  String getTryIcon({required bool isStart, required Brightness? brightness}) {
+  Future<void> destroy() async {
+    await trayManager.destroy();
+  }
 
+  String getTryIcon({required bool isStart, required bool tunEnable}) {
     if (system.isMacOS || !isStart) {
       return 'assets/images/icon/status_1.$trayIconSuffix';
     }
@@ -30,34 +38,17 @@ class Tray {
       return 'assets/images/icon/status_2.$trayIconSuffix';
     }
     return 'assets/images/icon/status_3.$trayIconSuffix';
-  }*/
-
-  // modify 2. Recover from the commits history.
-  String getTrayIcon({
-    required bool isStart,
-    required Brightness brightness,
-  }) {
-    if (!isStart) {
-      return switch (brightness) {
-        Brightness.dark => "assets/images/icon/icon_white.$trayIconSuffix",
-        Brightness.light => "assets/images/icon/icon_black.$trayIconSuffix",
-      };
-    }
-    return "assets/images/icon.$trayIconSuffix";
   }
 
-  // modify 3. Change the param and the method call.
   Future _updateSystemTray({
-    bool force = false,
     required bool isStart,
-    required Brightness? brightness,
+    required bool tunEnable,
   }) async {
-    if (Platform.isLinux || force) {
+    if (Platform.isLinux) {
       await trayManager.destroy();
     }
     await trayManager.setIcon(
-      getTrayIcon(isStart: isStart, brightness: brightness ??
-          WidgetsBinding.instance.platformDispatcher.platformBrightness),
+      getTryIcon(isStart: isStart, tunEnable: tunEnable),
       isTemplate: true,
     );
     if (!Platform.isLinux) {
@@ -65,10 +56,9 @@ class Tray {
     }
   }
 
-  // modify 4. Change the method calls at line 78 and 201.
   Future<void> update({
     required TrayState trayState,
-    bool focus = false,
+    required Traffic traffic,
   }) async {
     if (system.isAndroid) {
       return;
@@ -76,8 +66,7 @@ class Tray {
     if (!system.isLinux) {
       await _updateSystemTray(
         isStart: trayState.isStart,
-        brightness: trayState.brightness,
-        force: focus,
+        tunEnable: trayState.tunEnable,
       );
     }
     List<MenuItem> menuItems = [];
@@ -91,7 +80,7 @@ class Tray {
     final startMenuItem = MenuItem.checkbox(
       label: trayState.isStart ? appLocalizations.stop : appLocalizations.start,
       onClick: (_) async {
-        globalState.appController.updateStart();
+        appController.updateStart();
       },
       checked: false,
     );
@@ -100,7 +89,7 @@ class Tray {
       final speedStatistics = MenuItem.checkbox(
         label: appLocalizations.speedStatistics,
         onClick: (_) async {
-          globalState.appController.updateSpeedStatistics();
+          appController.updateSpeedStatistics();
         },
         checked: trayState.showTrayTitle,
       );
@@ -112,7 +101,7 @@ class Tray {
         MenuItem.checkbox(
           label: Intl.message(mode.name),
           onClick: (_) {
-            globalState.appController.changeMode(mode);
+            appController.changeMode(mode);
           },
           checked: mode == trayState.mode,
         ),
@@ -127,9 +116,8 @@ class Tray {
             MenuItem.checkbox(
               label: proxy.name,
               checked:
-                  globalState.getSelectedProxyName(group.name) == proxy.name,
+                  appController.getSelectedProxyName(group.name) == proxy.name,
               onClick: (_) {
-                final appController = globalState.appController;
                 appController.updateCurrentSelectedMap(group.name, proxy.name);
                 appController.changeProxy(
                   groupName: group.name,
@@ -155,7 +143,7 @@ class Tray {
         MenuItem.checkbox(
           label: appLocalizations.tun,
           onClick: (_) {
-            globalState.appController.updateTun();
+            appController.updateTun();
           },
           checked: trayState.tunEnable,
         ),
@@ -164,7 +152,7 @@ class Tray {
         MenuItem.checkbox(
           label: appLocalizations.systemProxy,
           onClick: (_) {
-            globalState.appController.updateSystemProxy();
+            appController.updateSystemProxy();
           },
           checked: trayState.systemProxy,
         ),
@@ -174,7 +162,7 @@ class Tray {
     final autoStartMenuItem = MenuItem.checkbox(
       label: appLocalizations.autoLaunch,
       onClick: (_) async {
-        globalState.appController.updateAutoLaunch();
+        appController.updateAutoLaunch();
       },
       checked: trayState.autoLaunch,
     );
@@ -190,7 +178,7 @@ class Tray {
     final exitMenuItem = MenuItem(
       label: appLocalizations.exit,
       onClick: (_) async {
-        await globalState.appController.handleExit();
+        await appController.handleExit();
       },
     );
     menuItems.add(exitMenuItem);
@@ -199,14 +187,10 @@ class Tray {
     if (system.isLinux) {
       await _updateSystemTray(
         isStart: trayState.isStart,
-        brightness: trayState.brightness,
-        force: focus,
+        tunEnable: trayState.tunEnable,
       );
     }
-    updateTrayTitle(
-      showTrayTitle: trayState.showTrayTitle,
-      traffic: globalState.appState.traffics.list.safeLast(Traffic()),
-    );
+    updateTrayTitle(showTrayTitle: trayState.showTrayTitle, traffic: traffic);
   }
 
   Future<void> updateTrayTitle({
