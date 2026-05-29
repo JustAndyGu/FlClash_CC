@@ -5,6 +5,7 @@ import 'package:fl_clash/models/models.dart';
 import 'package:fl_clash/providers/providers.dart';
 import 'package:fl_clash/state.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:tray_manager/tray_manager.dart';
 
@@ -31,6 +32,8 @@ class Tray {
     await trayManager.destroy();
   }
 
+  // modify 1. The upstream original codes.
+  /*
   String getTryIcon({required bool isStart, required bool tunEnable}) {
     if (system.isMacOS || !isStart) {
       return 'assets/images/icon/status_1.$trayIconSuffix';
@@ -40,16 +43,33 @@ class Tray {
     }
     return 'assets/images/icon/status_3.$trayIconSuffix';
   }
+  */
 
+  // modify 2. The codes changed.
+  String getTrayIcon({
+    required bool isStart,
+    required Brightness brightness,
+  }) {
+    if (!isStart) {
+      return switch (brightness) {
+        Brightness.dark => 'assets/images/icon/icon_white.$trayIconSuffix',
+        Brightness.light => 'assets/images/icon/icon_black.$trayIconSuffix',
+      };
+    }
+    return 'assets/images/icon.$trayIconSuffix';
+  }
+
+  // modify 3. Change the param and the method call.
   Future _updateSystemTray({
     required bool isStart,
-    required bool tunEnable,
+    required Brightness? brightness,
   }) async {
     if (Platform.isLinux) {
       await trayManager.destroy();
     }
     await trayManager.setIcon(
-      getTryIcon(isStart: isStart, tunEnable: tunEnable),
+      getTrayIcon(isStart: isStart,
+          brightness: brightness ?? WidgetsBinding.instance.platformDispatcher.platformBrightness),
       isTemplate: system.isMacOS,
     );
     if (!Platform.isLinux) {
@@ -57,6 +77,7 @@ class Tray {
     }
   }
 
+  // modify 4. Change the method calls at line 89 and 216.
   Future<void> update({
     required TrayState trayState,
     required Traffic traffic,
@@ -67,7 +88,7 @@ class Tray {
     if (!system.isLinux) {
       await _updateSystemTray(
         isStart: trayState.isStart,
-        tunEnable: trayState.tunEnable,
+        brightness: trayState.brightness,
       );
     }
     final List<MenuItem> menuItems = [];
@@ -122,7 +143,7 @@ class Tray {
             MenuItem.checkbox(
               label: proxy.name,
               checked:
-                  ref.read(selectedProxyNameProvider(group.name)) == proxy.name,
+              ref.read(selectedProxyNameProvider(group.name)) == proxy.name,
               onClick: (_) {
                 ref
                     .read(profilesActionProvider.notifier)
@@ -194,7 +215,7 @@ class Tray {
     if (system.isLinux) {
       await _updateSystemTray(
         isStart: trayState.isStart,
-        tunEnable: trayState.tunEnable,
+        brightness: trayState.brightness,
       );
     }
     updateTrayTitle(showTrayTitle: trayState.showTrayTitle, traffic: traffic);
